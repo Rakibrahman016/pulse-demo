@@ -7,9 +7,9 @@
 <!-- Filled by demo_replay.py: the DATA placeholder below is replaced with the night's JSON. Works offline. -->
 <style>
   :root {
-    --bg: #0b0f14; --panel: #121821; --line: #233041; --text: #e8eef5; --muted: #8b98a8;
-    --spo2: #5aa9ff; --eeg: #9b8cff; --event: #ff6b5e; --sleep: #3ccf8e; --lab: #f2c14e;
-    --normal: #3ccf8e; --mild: #f2c14e; --moderate: #ff9f43; --severe: #ff5e57;
+    --bg: #f3f6f9; --panel: #ffffff; --line: #d9e2ec; --text: #0f2a44; --muted: #5a6b7f;
+    --spo2: #0b6bcb; --eeg: #6a4fc9; --event: #d93a3a; --sleep: #0f9d8a; --lab: #b9770e;
+    --normal: #1e9e5a; --mild: #c99a06; --moderate: #e0761b; --severe: #d93a3a;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
@@ -23,7 +23,7 @@
   .clock .l { color: var(--muted); font-size: clamp(11px, 1.5vh, 16px); }
   .main { display: grid; grid-template-columns: 1fr minmax(240px, 22vw); gap: 1.6vw; min-height: 0; }
   .charts { display: grid; grid-template-rows: 1.25fr 1fr; gap: 1.6vh; min-height: 0; }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 1.4vh 1.2vw;
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 1px 3px rgba(15, 42, 68, .06); padding: 1.4vh 1.2vw;
     display: flex; flex-direction: column; min-height: 0; position: relative; }
   .panel h2 { margin: 0 0 .8vh; font-size: clamp(12px, 1.8vh, 19px); font-weight: 600; color: var(--muted);
     display: flex; gap: 1vw; align-items: center; }
@@ -33,20 +33,20 @@
   .toast.on { opacity: 1; }
   .dot { width: 1.3vh; height: 1.3vh; border-radius: 50%; background: var(--event); box-shadow: 0 0 12px var(--event); }
   .tiles { display: grid; grid-template-rows: repeat(5, auto) 1fr; gap: 1.4vh; min-height: 0; }
-  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 1.4vh 1.1vw; }
+  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 1px 3px rgba(15, 42, 68, .06); padding: 1.4vh 1.1vw; }
   .tile .k { color: var(--muted); font-size: clamp(11px, 1.55vh, 16px); }
   .tile .v { font-size: clamp(24px, 4.4vh, 52px); font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.15; }
   .tile .v small { font-size: .45em; color: var(--muted); font-weight: 500; margin-left: .3em; }
   .tile.big .v { font-size: clamp(36px, 7.5vh, 92px); }
   .chip { display: inline-block; padding: .25em .7em; border-radius: 99px; font-size: clamp(11px, 1.6vh, 17px);
-    font-weight: 650; color: #0b0f14; background: var(--muted); margin-top: .4vh; }
+    font-weight: 650; color: #fff; background: var(--muted); margin-top: .4vh; }
   .lab { border-color: var(--lab); opacity: 0; transform: translateY(8px); transition: all .6s ease; }
   .lab.on { opacity: 1; transform: none; }
   .lab .v { color: var(--lab); }
   footer { display: flex; justify-content: space-between; color: var(--muted); font-size: clamp(11px, 1.5vh, 15px); gap: 2vw; }
   .bar { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: .8vh; }
   .bar i { display: block; height: 100%; width: 0; background: var(--spo2); }
-  .start { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(11, 15, 20, .72);
+  .start { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(243, 246, 249, .82);
     cursor: pointer; transition: opacity .3s; }
   .start.hide { opacity: 0; pointer-events: none; }
   .start div { text-align: center; }

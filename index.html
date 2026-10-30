@@ -9,8 +9,8 @@
      Keys: B breath-hold timer · F fullscreen · Space pause. Not a medical measurement. -->
 <style>
   :root {
-    --bg: #0b0f14; --panel: #121821; --line: #233041; --text: #e8eef5; --muted: #8b98a8;
-    --ppg: #ff6b5e; --hr: #5aa9ff; --hold: #f2c14e; --ok: #3ccf8e;
+    --bg: #f3f6f9; --panel: #ffffff; --line: #d9e2ec; --text: #0f2a44; --muted: #5a6b7f;
+    --ppg: #d93a3a; --hr: #0b6bcb; --hold: #b9770e; --ok: #1e9e5a;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
@@ -37,11 +37,25 @@
   .hold .v { color: var(--hold); }
   button, select { font: inherit; font-size: clamp(12px, 1.6vh, 16px); background: var(--panel); color: var(--text);
     border: 1px solid var(--line); border-radius: 10px; padding: .5em .9em; cursor: pointer; }
-  button.primary { background: var(--ppg); color: #0b0f14; border: 0; font-weight: 650; }
+  button.primary { background: var(--hr); color: #fff; border: 0; font-weight: 650; }
   .controls { display: flex; gap: .6vw; flex-wrap: wrap; align-items: center; }
   footer { display: flex; justify-content: space-between; color: var(--muted); font-size: clamp(11px, 1.5vh, 15px); gap: 2vw; }
   video { display: none; }
   .preview { width: 100%; aspect-ratio: 4 / 3; border-radius: 10px; background: #000; display: block; }
+  .panel, .tile { box-shadow: 0 1px 3px rgba(15, 42, 68, .06); }
+  @media (max-width: 720px) {  /* phone: controls and heart rate first, then charts; page scrolls */
+    html, body { height: auto; overflow: auto; }
+    .app { height: auto; padding: 14px 16px; gap: 12px; }
+    .main { grid-template-columns: 1fr; gap: 12px; }
+    .tiles { order: -1; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .tile.big, .controls { grid-column: 1 / -1; }
+    .tile.big .v { font-size: 64px; }
+    .tile .v { font-size: 22px; }
+    .charts { grid-template-rows: 220px 200px; gap: 12px; }
+    .panel, .tile { padding: 10px 12px; }
+    button, select { font-size: 16px; padding: .6em 1em; }
+    footer { flex-direction: column; gap: 6px; }
+  }
 </style>
 </head>
 <body>
