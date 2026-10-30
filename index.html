@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live Pulse</title>
+<!-- Stage demo: optical pulse (PPG) from a camera, the principle the mask's MAX30102 uses.
+     Fingertip over the camera, light shining through the finger. Works offline (file://) in Chrome/Edge.
+     Keys: B breath-hold timer · F fullscreen · Space pause. Not a medical measurement. -->
+<style>
+  :root {
+    --bg: #0b0f14; --panel: #121821; --line: #233041; --text: #e8eef5; --muted: #8b98a8;
+    --ppg: #ff6b5e; --hr: #5aa9ff; --hold: #f2c14e; --ok: #3ccf8e;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif; overflow: hidden; }
+  .app { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; padding: 2.2vh 2.4vw; gap: 1.6vh; }
+  h1 { margin: 0; font-size: clamp(20px, 3.4vh, 40px); font-weight: 650; }
+  .sub { color: var(--muted); font-size: clamp(12px, 1.7vh, 18px); margin-top: .5vh; max-width: 70ch; }
+  .main { display: grid; grid-template-columns: 1fr minmax(220px, 22vw); gap: 1.6vw; min-height: 0; }
+  .charts { display: grid; grid-template-rows: 1.4fr 1fr; gap: 1.6vh; min-height: 0; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 1.4vh 1.2vw;
+    display: flex; flex-direction: column; min-height: 0; }
+  .panel h2 { margin: 0 0 .8vh; font-size: clamp(12px, 1.8vh, 19px); font-weight: 600; color: var(--muted); }
+  .panel canvas { flex: 1; width: 100%; min-height: 0; display: block; }
+  .tiles { display: grid; grid-auto-rows: min-content; gap: 1.4vh; }
+  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 1.4vh 1.1vw; }
+  .tile .k { color: var(--muted); font-size: clamp(11px, 1.55vh, 16px); }
+  .tile .v { font-size: clamp(24px, 4.4vh, 52px); font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.15; }
+  .tile .v small { font-size: .45em; color: var(--muted); font-weight: 500; margin-left: .3em; }
+  .tile.big .v { font-size: clamp(44px, 10vh, 120px); display: flex; align-items: center; gap: .3em; }
+  .heart { width: .32em; height: .32em; border-radius: 50%; background: var(--ppg); opacity: .25; transition: opacity .25s; }
+  .heart.beat { opacity: 1; transition: none; box-shadow: 0 0 18px var(--ppg); }
+  .q { font-weight: 650; }
+  .hold { border-color: var(--hold); }
+  .hold .v { color: var(--hold); }
+  button, select { font: inherit; font-size: clamp(12px, 1.6vh, 16px); background: var(--panel); color: var(--text);
+    border: 1px solid var(--line); border-radius: 10px; padding: .5em .9em; cursor: pointer; }
+  button.primary { background: var(--ppg); color: #0b0f14; border: 0; font-weight: 650; }
+  .controls { display: flex; gap: .6vw; flex-wrap: wrap; align-items: center; }
+  footer { display: flex; justify-content: space-between; color: var(--muted); font-size: clamp(11px, 1.5vh, 15px); gap: 2vw; }
+  video { display: none; }
+  .preview { width: 100%; aspect-ratio: 4 / 3; border-radius: 10px; background: #000; display: block; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Live pulse: the light signal the mask measures</h1>
+    <div class="sub">Fingertip over the camera, a light shining through it. With every heartbeat the finger fills with
+      blood and lets less light through. The mask's sensor does the same on the forehead with red and infrared light,
+      which also gives blood oxygen.</div>
+  </header>
+  <div class="main">
+    <div class="charts">
+      <div class="panel"><h2>Pulse wave (last 8 seconds)</h2><canvas id="wave"></canvas></div>
+      <div class="panel"><h2>Heart rate over time <span id="holdlegend"></span></h2><canvas id="trend"></canvas></div>
+    </div>
+    <div class="tiles">
+      <div class="tile big"><div class="k">Heart rate</div><div class="v"><span id="bpm">–</span><small>bpm</small><span class="heart" id="heart"></span></div></div>
+      <div class="tile"><div class="k">Signal</div><div class="v q" id="quality" style="font-size:clamp(16px,2.6vh,30px)">camera off</div></div>
+      <div class="tile hold" id="holdtile" style="display:none"><div class="k">Breath-hold</div><div class="v" id="holdt">0 s</div></div>
+      <div class="tile"><div class="k">Camera</div><canvas class="preview" id="preview" width="160" height="120"></canvas></div>
+      <div class="controls">
+        <button class="primary" id="go">Start camera</button>
+        <select id="cams" title="camera"></select>
+        <button id="torch" style="display:none">Flash</button>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <span>Demo of the sensing principle with a camera. The mask has no camera. Not a medical measurement.</span>
+    <span>B breath-hold · Space pause · F fullscreen</span>
+  </footer>
+</div>
+<video id="video" playsinline muted></video>
+
+<script>
+const $ = id => document.getElementById(id);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C = { ppg: css('--ppg'), hr: css('--hr'), hold: css('--hold'), line: css('--line'), muted: css('--muted'), ok: css('--ok') };
+const video = $('video'), grab = document.createElement('canvas'), gctx = grab.getContext('2d', { willReadFrequently: true });
+grab.width = 40; grab.height = 30;
+
+// raw samples: time (s), mean red and green of the centre of the image
+const T = [], RED = [], GRN = [];
+const beats = [];          // beat times (s)
+const hrPts = [];          // [time, bpm] instantaneous heart rate per beat
+const holds = [];          // [start, end] breath-holds
+let stream = null, paused = false, holdStart = null, t0 = performance.now() / 1000, finger = false, chan = RED;
+const now = () => performance.now() / 1000 - t0;
+
+function sample() {
+  if (!stream || video.readyState < 2 || paused) return;
+  gctx.drawImage(video, 0, 0, grab.width, grab.height);
+  const d = gctx.getImageData(10, 7, 20, 15).data;   // centre half of the frame
+  let r = 0, g = 0, b = 0, n = d.length / 4;
+  for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
+  r /= n; g /= n; b /= n;
+  T.push(now()); RED.push(r); GRN.push(g);
+  finger = r > 40 && r > 1.5 * g && r > 1.5 * b;        // a lit fingertip looks red
+  while (T.length && T[T.length - 1] - T[0] > 30) { T.shift(); RED.shift(); GRN.shift(); }
+}
+
+// band-pass by moving means on timestamps: x - mean(1.0 s) removes the slow light level, mean(0.12 s) smooths noise
+function filtered(raw, i0) {
+  const out = new Float64Array(T.length);
+  for (let i = i0; i < T.length; i++) {
+    let s1 = 0, n1 = 0, s2 = 0, n2 = 0;
+    for (let j = i; j >= 0 && T[i] - T[j] <= 1.0; j--) { s1 += raw[j]; n1++; if (T[i] - T[j] <= 0.12) { s2 += raw[j]; n2++; } }
+    out[i] = -(s2 / n2 - s1 / n1);                     // inverted: more blood = less light = peak up
+  }
+  return out;
+}
+
+function power(x, i0) { let s = 0, n = 0; for (let i = i0; i < x.length; i++) { s += x[i] * x[i]; n++; } return n ? s / n : 0; }
+
+let lastBeat = -1;
+function detect(x) {
+  // a beat = local maximum within +-0.25 s, above 40% of the recent amplitude, at least 0.33 s after the last beat
+  const tn = T[T.length - 1]; if (tn == null) return;
+  let i0 = T.findIndex(v => v >= tn - 4); if (i0 < 0) return;
+  let amp = 0; for (let i = i0; i < x.length; i++) amp = Math.max(amp, Math.abs(x[i]));
+  for (let i = i0; i < x.length; i++) {
+    if (T[i] > tn - 0.25 || T[i] <= lastBeat + 0.33 || x[i] < 0.4 * amp) continue;
+    let peak = true;
+    for (let j = i - 1; j >= 0 && T[i] - T[j] <= 0.25 && peak; j--) if (x[j] > x[i]) peak = false;
+    for (let j = i + 1; j < x.length && T[j] - T[i] <= 0.25 && peak; j++) if (x[j] >= x[i]) peak = false;
+    if (!peak) continue;
+    // sub-frame peak time: parabola through the 3 samples around the maximum
+    const a = x[i - 1], b = x[i], c = x[i + 1], den = a - 2 * b + c;
+    const off = den < 0 ? Math.max(-0.5, Math.min(0.5, 0.5 * (a - c) / den)) : 0;
+    const tp = T[i] + off * (off > 0 ? T[i + 1] - T[i] : T[i] - T[i - 1]);
+    if (lastBeat > 0) { const ibi = tp - lastBeat; if (ibi < 1.5) hrPts.push([tp, 60 / ibi]); }
+    lastBeat = tp; beats.push(tp);
+    $('heart').classList.add('beat'); setTimeout(() => $('heart').classList.remove('beat'), 120);
+  }
+  while (hrPts.length && hrPts[0][0] < tn - 120) hrPts.shift();
+}
+
+function bpmNow() {
+  const tn = now(), r = hrPts.filter(p => p[0] > tn - 8).map(p => p[1]).sort((a, b) => a - b);
+  return r.length >= 3 && tn - lastBeat < 2.5 ? r[Math.floor(r.length / 2)] : null;
+}
+
+function canvas(id) {
+  const c = $(id), r = c.getBoundingClientRect(), k = devicePixelRatio || 1;
+  if (c.width !== Math.round(r.width * k) || c.height !== Math.round(r.height * k)) { c.width = Math.round(r.width * k); c.height = Math.round(r.height * k); }
+  const g = c.getContext('2d'); g.setTransform(k, 0, 0, k, 0, 0); g.clearRect(0, 0, r.width, r.height); return [g, r.width, r.height];
+}
+
+function draw(x) {
+  const tn = now();
+  { // pulse wave
+    const [g, W, H] = canvas('wave'), win = 8, X = t => (t - (tn - win)) / win * W;
+    let i0 = T.findIndex(v => v >= tn - win); if (i0 < 0) i0 = T.length;
+    let amp = 1e-9; for (let i = i0; i < x.length; i++) amp = Math.max(amp, Math.abs(x[i]));
+    g.strokeStyle = C.line; g.lineWidth = 1; g.beginPath(); g.moveTo(0, H / 2); g.lineTo(W, H / 2); g.stroke();
+    g.fillStyle = C.ppg + '55'; for (const b of beats) if (b > tn - win) g.fillRect(X(b) - 1, 0, 2, H);
+    g.strokeStyle = C.ppg; g.lineWidth = 3; g.lineJoin = 'round'; g.beginPath();
+    for (let i = i0; i < x.length; i++) { const y = H / 2 - x[i] / amp * H * 0.42; i === i0 ? g.moveTo(X(T[i]), y) : g.lineTo(X(T[i]), y); }
+    g.stroke();
+  }
+  { // heart-rate trend, last 90 s, with breath-holds
+    const [g, W, H] = canvas('trend'), win = 90, L = 40, X = t => L + (t - (tn - win)) / win * (W - L);
+    const v = hrPts.filter(p => p[0] > tn - win).map(p => p[1]);
+    const lo = Math.max(30, Math.floor((Math.min(...v, 60) - 10) / 10) * 10), hi = Math.min(200, Math.ceil((Math.max(...v, 90) + 10) / 10) * 10);
+    const Y = b => 6 + (hi - b) / (hi - lo) * (H - 24);
+    g.fillStyle = C.hold + '30';
+    for (const [a, b] of holds.concat(holdStart != null ? [[holdStart, tn]] : [])) if (b > tn - win) g.fillRect(X(a), 0, X(b) - X(a), H - 18);
+    g.font = '12px "Segoe UI", system-ui'; g.fillStyle = C.muted; g.strokeStyle = C.line; g.lineWidth = 1;
+    for (let b = lo; b <= hi; b += 10) { g.beginPath(); g.moveTo(L, Y(b)); g.lineTo(W, Y(b)); g.stroke(); g.fillText(b, 4, Y(b) + 4); }
+    for (let s = -90; s <= 0; s += 30) g.fillText(s ? s + ' s' : 'now', X(tn + s) - (s ? 12 : 26), H - 3);
+    g.fillStyle = C.hr;
+    for (const [t, b] of hrPts) if (t > tn - win && b >= lo && b <= hi) { g.beginPath(); g.arc(X(t), Y(b), 3, 0, 7); g.fill(); }
+  }
+  const pv = $('preview').getContext('2d'); if (stream) pv.drawImage(video, 0, 0, 160, 120);
+}
+
+function tick() {
+  sample();
+  if (!T.length) return;
+  const i0 = Math.max(0, T.findIndex(v => v >= now() - 9));
+  const xr = filtered(RED, i0), xg = filtered(GRN, i0);
+  const saturated = RED[RED.length - 1] > 245;
+  chan = saturated || power(xg, i0) > 1.5 * power(xr, i0) ? xg : xr;   // use the channel with the stronger pulse
+  detect(chan); draw(chan);
+  const b = bpmNow();
+  $('bpm').textContent = b ? Math.round(b) : '–';
+  const q = $('quality');
+  if (!finger) { q.textContent = 'place fingertip on the camera'; q.style.color = C.muted; }
+  else if (!b) { q.textContent = 'finding pulse… keep still'; q.style.color = C.hold; }
+  else { q.textContent = 'pulse found'; q.style.color = C.ok; }
+  if (holdStart != null) $('holdt').textContent = Math.round(now() - holdStart) + ' s';
+}
+
+async function listCams() {
+  const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
+  $('cams').innerHTML = devs.map((d, i) => `<option value="${d.deviceId}">${d.label || 'camera ' + (i + 1)}</option>`).join('');
+}
+
+async function start(deviceId) {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: deviceId ? { deviceId: { exact: deviceId } } :
+      { facingMode: 'environment', width: 320, height: 240, frameRate: 30 }, audio: false });
+  } catch (e) { $('quality').textContent = 'camera blocked: ' + e.name; return; }
+  video.srcObject = stream; await video.play();
+  $('go').textContent = 'Restart camera';
+  await listCams();
+  const track = stream.getVideoTracks()[0], caps = track.getCapabilities ? track.getCapabilities() : {};
+  $('cams').value = track.getSettings().deviceId || '';
+  $('torch').style.display = caps.torch ? '' : 'none';
+}
+
+let torchOn = false;
+$('torch').onclick = async () => { torchOn = !torchOn; try { await stream.getVideoTracks()[0].applyConstraints({ advanced: [{ torch: torchOn }] }); } catch (e) {} };
+$('go').onclick = () => start();
+$('cams').onchange = e => start(e.target.value);
+addEventListener('keydown', e => {
+  if (e.key === 'b' || e.key === 'B') {
+    if (holdStart == null) { holdStart = now(); $('holdtile').style.display = ''; }
+    else { holds.push([holdStart, now()]); holdStart = null; }
+    $('holdlegend').textContent = holds.length || holdStart != null ? '· yellow = breath-hold' : '';
+  } else if (e.code === 'Space') { e.preventDefault(); paused = !paused; }
+  else if (e.key === 'f' || e.key === 'F') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+});
+setInterval(tick, 33);   // timer, not requestAnimationFrame (see demo_template.html)
+</script>
+</body>
+</html>
