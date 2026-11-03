@@ -1,0 +1,292 @@
+{
+ "dataset": "UCDDB (PhysioNet ucddb 1.0.0)",
+ "model": {
+  "config": "Full mask (no airflow)",
+  "features": 41,
+  "ahi_r": 0.8271001318114927,
+  "ahi_r_ci95": [
+   0.6153797089748592,
+   0.9210234118315438
+  ],
+  "ahi_mae": 8.969941532553214,
+  "cv": "5-fold leave-subjects-out",
+  "model": "gbm.GBM"
+ },
+ "nights": [
+  {
+   "record": "ucddb002",
+   "start": "00:11:04",
+   "true_ahi": 23.732057416267946,
+   "est_ahi": 21.862269691047004,
+   "tst_h": 5.225,
+   "trt_h": 6.241666666666666,
+   "n_events": 124,
+   "severity_true": "moderate",
+   "severity_est": "moderate"
+  },
+  {
+   "record": "ucddb003",
+   "start": "23:07:50",
+   "true_ahi": 51.26050420168067,
+   "est_ahi": 51.674842082278296,
+   "tst_h": 5.95,
+   "trt_h": 7.355,
+   "n_events": 305,
+   "severity_true": "severe",
+   "severity_est": "severe"
+  },
+  {
+   "record": "ucddb005",
+   "start": "23:28:42",
+   "true_ahi": 13.23017408123791,
+   "est_ahi": 33.304278628854235,
+   "tst_h": 4.308333333333334,
+   "trt_h": 6.888333333333334,
+   "n_events": 57,
+   "severity_true": "mild",
+   "severity_est": "severe"
+  },
+  {
+   "record": "ucddb006",
+   "start": "23:57:14",
+   "true_ahi": 31.340782122905026,
+   "est_ahi": 7.23202180627956,
+   "tst_h": 5.966666666666667,
+   "trt_h": 6.740833333333334,
+   "n_events": 187,
+   "severity_true": "severe",
+   "severity_est": "mild"
+  },
+  {
+   "record": "ucddb007",
+   "start": "23:30:22",
+   "true_ahi": 12.016460905349794,
+   "est_ahi": 7.186581651610775,
+   "tst_h": 6.075,
+   "trt_h": 6.779166666666667,
+   "n_events": 73,
+   "severity_true": "mild",
+   "severity_est": "mild"
+  },
+  {
+   "record": "ucddb008",
+   "start": "23:29:11",
+   "true_ahi": 4.615384615384616,
+   "est_ahi": 8.862712012838971,
+   "tst_h": 4.116666666666666,
+   "trt_h": 6.400277777777778,
+   "n_events": 19,
+   "severity_true": "normal",
+   "severity_est": "mild"
+  },
+  {
+   "record": "ucddb009",
+   "start": "22:35:22",
+   "true_ahi": 12.408163265306122,
+   "est_ahi": 10.710247714511835,
+   "tst_h": 6.125,
+   "trt_h": 7.710833333333333,
+   "n_events": 76,
+   "severity_true": "mild",
+   "severity_est": "mild"
+  },
+  {
+   "record": "ucddb010",
+   "start": "22:51:18",
+   "true_ahi": 33.565426170468186,
+   "est_ahi": 42.340549609578105,
+   "tst_h": 6.941666666666666,
+   "trt_h": 7.558611111111111,
+   "n_events": 233,
+   "severity_true": "severe",
+   "severity_est": "severe"
+  },
+  {
+   "record": "ucddb011",
+   "start": "22:47:38",
+   "true_ahi": 7.720588235294118,
+   "est_ahi": 0.0,
+   "tst_h": 4.533333333333333,
+   "trt_h": 7.508333333333334,
+   "n_events": 35,
+   "severity_true": "mild",
+   "severity_est": "normal"
+  },
+  {
+   "record": "ucddb012",
+   "start": "23:23:21",
+   "true_ahi": 24.653061224489797,
+   "est_ahi": 12.209587037995162,
+   "tst_h": 6.125,
+   "trt_h": 7.2058333333333335,
+   "n_events": 151,
+   "severity_true": "moderate",
+   "severity_est": "mild"
+  },
+  {
+   "record": "ucddb013",
+   "start": "23:44:00",
+   "true_ahi": 15.789473684210527,
+   "est_ahi": 20.267584432712553,
+   "tst_h": 4.116666666666666,
+   "trt_h": 6.759166666666666,
+   "n_events": 65,
+   "severity_true": "moderate",
+   "severity_est": "moderate"
+  },
+  {
+   "record": "ucddb014",
+   "start": "23:37:59",
+   "true_ahi": 35.86206896551724,
+   "est_ahi": 50.67587926094457,
+   "tst_h": 5.075,
+   "trt_h": 6.455277777777778,
+   "n_events": 182,
+   "severity_true": "severe",
+   "severity_est": "severe"
+  },
+  {
+   "record": "ucddb015",
+   "start": "23:02:45",
+   "true_ahi": 6.271186440677965,
+   "est_ahi": 20.182298221609244,
+   "tst_h": 5.9,
+   "trt_h": 7.635555555555555,
+   "n_events": 37,
+   "severity_true": "mild",
+   "severity_est": "moderate"
+  },
+  {
+   "record": "ucddb017",
+   "start": "23:16:05",
+   "true_ahi": 11.895043731778426,
+   "est_ahi": 10.358227619311043,
+   "tst_h": 5.716666666666667,
+   "trt_h": 6.578888888888889,
+   "n_events": 68,
+   "severity_true": "mild",
+   "severity_est": "mild"
+  },
+  {
+   "record": "ucddb018",
+   "start": "23:49:02",
+   "true_ahi": 2.1862348178137654,
+   "est_ahi": 0.8639981957830152,
+   "tst_h": 4.116666666666666,
+   "trt_h": 6.856944444444444,
+   "n_events": 9,
+   "severity_true": "normal",
+   "severity_est": "normal"
+  },
+  {
+   "record": "ucddb019",
+   "start": "23:30:33",
+   "true_ahi": 15.979513444302176,
+   "est_ahi": 3.637704785555229,
+   "tst_h": 6.508333333333334,
+   "trt_h": 7.103611111111111,
+   "n_events": 104,
+   "severity_true": "moderate",
+   "severity_est": "normal"
+  },
+  {
+   "record": "ucddb020",
+   "start": "23:48:21",
+   "true_ahi": 15.025728987993139,
+   "est_ahi": 15.447227418473334,
+   "tst_h": 4.858333333333333,
+   "trt_h": 6.273888888888889,
+   "n_events": 73,
+   "severity_true": "moderate",
+   "severity_est": "moderate"
+  },
+  {
+   "record": "ucddb021",
+   "start": "22:52:05",
+   "true_ahi": 12.85140562248996,
+   "est_ahi": 23.344421562590608,
+   "tst_h": 6.225,
+   "trt_h": 7.613611111111111,
+   "n_events": 80,
+   "severity_true": "mild",
+   "severity_est": "moderate"
+  },
+  {
+   "record": "ucddb022",
+   "start": "23:35:05",
+   "true_ahi": 7.0434782608695645,
+   "est_ahi": 8.360909634754643,
+   "tst_h": 3.8333333333333335,
+   "trt_h": 6.566666666666666,
+   "n_events": 27,
+   "severity_true": "mild",
+   "severity_est": "mild"
+  },
+  {
+   "record": "ucddb023",
+   "start": "22:55:51",
+   "true_ahi": 39.58549222797927,
+   "est_ahi": 24.61817015373994,
+   "tst_h": 4.825,
+   "trt_h": 7.180555555555555,
+   "n_events": 191,
+   "severity_true": "severe",
+   "severity_est": "moderate"
+  },
+  {
+   "record": "ucddb024",
+   "start": "22:58:02",
+   "true_ahi": 24.672897196261683,
+   "est_ahi": 10.66806025605968,
+   "tst_h": 6.241666666666666,
+   "trt_h": 7.569444444444445,
+   "n_events": 154,
+   "severity_true": "moderate",
+   "severity_est": "mild"
+  },
+  {
+   "record": "ucddb025",
+   "start": "00:25:37",
+   "true_ahi": 94.81751824817519,
+   "est_ahi": 66.74012862653417,
+   "tst_h": 4.566666666666666,
+   "trt_h": 5.930555555555555,
+   "n_events": 433,
+   "severity_true": "severe",
+   "severity_est": "severe"
+  },
+  {
+   "record": "ucddb026",
+   "start": "22:58:13",
+   "true_ahi": 13.884297520661157,
+   "est_ahi": 15.58109366173811,
+   "tst_h": 6.05,
+   "trt_h": 6.988888888888889,
+   "n_events": 84,
+   "severity_true": "mild",
+   "severity_est": "moderate"
+  },
+  {
+   "record": "ucddb027",
+   "start": "22:56:30",
+   "true_ahi": 55.30026109660574,
+   "est_ahi": 39.97990092480874,
+   "tst_h": 6.383333333333334,
+   "trt_h": 7.441944444444444,
+   "n_events": 353,
+   "severity_true": "severe",
+   "severity_est": "severe"
+  },
+  {
+   "record": "ucddb028",
+   "start": "00:29:08",
+   "true_ahi": 48.1947261663286,
+   "est_ahi": 51.559421035684316,
+   "tst_h": 4.108333333333333,
+   "trt_h": 6.016666666666667,
+   "n_events": 198,
+   "severity_true": "severe",
+   "severity_est": "severe"
+  }
+ ]
+}
