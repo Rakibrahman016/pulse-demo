@@ -130,9 +130,46 @@ button.primary { background: var(--accent); color: var(--surface); border-color:
   .score .big { font-size: 38px; }
   h1 { font-size: 25px; }
 }
+
+/* 16:9 slide: a fixed 1920x1080 stage scaled to the screen (JS sets --k). Charts 2/3, vital signs 1/3, QR at the bottom. */
+.slide { display: contents; }
+.bottom-row { display: grid; gap: 12px; grid-column: 1 / -1; }
+.vitals { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+html.fit, html.fit body { overflow-x: hidden; }
+html.fit .wrap { max-width: none; padding: 0 0 56px; gap: 0; display: block; }
+html.fit #fitbox { margin: 0 auto; overflow: hidden; }
+html.fit .slide { display: grid; width: 1920px; height: 1080px; transform-origin: 0 0; grid-template-rows: auto minmax(0, 1fr);
+  gap: 16px; padding: 26px 36px; }
+html.fit header h1 { font-size: 46px; }
+html.fit .eyebrow { font-size: 15px; }
+html.fit .stage { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); height: 100%; min-height: 0; gap: 22px; align-items: stretch; }
+html.fit .main { display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+html.fit .main .panel:last-child { flex: 1; }
+html.fit .side { grid-template-columns: 1fr 1fr; grid-auto-rows: min-content; align-content: start; gap: 12px; }
+html.fit .side-head, html.fit .vitals-tile, html.fit .bottom-row { grid-column: 1 / -1; }
+html.fit .side-head .muted { font-size: 16px !important; }
+html.fit .bottom-row { grid-template-columns: 1.3fr 1fr; align-items: stretch; }
+html.fit .vitals { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 12px; }
+html.fit .allnights-panel h2 { font-size: 20px; }
+html.fit .panel h2 { font-size: 24px; }
+html.fit .score .big { font-size: 72px; }
+html.fit .score .unit, html.fit .facts, html.fit .legend { font-size: 15px; }
+html.fit .chip { font-size: 14px; padding: 6px 10px; }
+html.fit .vitals .k, html.fit .tile .k { font-size: 14px; }
+html.fit .vitals .v { font-size: 27px; }
+html.fit .allnights-body { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+html.fit .allnights-panel { padding: 14px; gap: 8px; }
+html.fit .allnights-panel .panel-head span.muted { display: none; }
+html.fit #modelLine { font-size: 13px !important; }
+html.fit .qr svg { width: 164px; height: 164px; }
+html.fit .qr b { font-size: 20px; }
+html.fit .qr .url { font-size: 14px; }
+html.fit select, html.fit button { font-size: 17px; padding: 9px 14px; }
+html.fit .controls { gap: 10px; }
 </style>
 
 <div class="wrap">
+<div id="fitbox"><div class="slide" id="slide">
   <header>
     <div class="titles">
       <span class="eyebrow">Sleep apnea eyemask · concept demo · real sleep-lab nights</span>
@@ -185,7 +222,7 @@ button.primary { background: var(--accent); color: var(--surface); border-color:
     <canvas id="cu" class="cv" aria-label="Close-up of oxygen, pulse, breathing sound and the model output around the playhead"></canvas>
   </section>
 
-      <section class="panel allnights-panel" aria-labelledby="h-all">
+      <section class="panel allnights-panel" id="scatterPanel" aria-labelledby="h-all">
         <div class="panel-head"><h2 id="h-all">All nights: mask vs sleep lab</h2><span class="muted" style="font-size:13px">Click a dot to open that night</span></div>
         <div class="allnights allnights-body">
           <svg id="scatter" viewBox="0 0 260 190" role="img" aria-label="Mask estimate versus sleep-lab AHI for every night"></svg>
@@ -224,26 +261,26 @@ button.primary { background: var(--accent); color: var(--surface); border-color:
             <span>Lights out <b id="start">–</b></span>
           </div>
         </div>
-        <div class="tile">
+        <div class="tile vitals-tile">
           <div class="vitals">
             <div><span class="k">AHI so far · mask</span><span class="v" id="rEst" style="color:var(--model)">–</span></div>
             <div><span class="k">AHI so far · lab</span><span class="v" id="rTrue" style="color:var(--event)">–</span></div>
             <div><span class="k">Clock</span><span class="v" id="rClock">–</span></div>
             <div><span class="k">Sleep stage (lab)</span><span class="v" id="rStage">–</span></div>
-            <div style="grid-column:1 / -1"><span class="k">Mask thinks you are</span><span class="v" id="rSleep">–</span></div>
+            <div><span class="k">Mask thinks you are</span><span class="v" id="rSleep">–</span></div>
+            <div><span class="k">Oxygen · pulse now</span><span class="v"><span id="rOx" style="color:var(--spo2)">–</span><small id="rBpm" style="color:var(--pulse); font-size:.6em; margin-left:.3em"></small></span></div>
           </div>
         </div>
-        <div class="tile">
-          <span class="k">Oxygen · pulse now</span>
-          <span class="now"><span id="rOx" style="color:var(--spo2)">–</span><small id="rBpm" style="color:var(--pulse)"></small></span>
-        </div>
+        <div class="bottom-row" id="bottomRow">
         <div class="tile qr">
           <b>Scan to watch on your phone</b>
           <div id="qr" aria-label="QR code linking to this replay"></div>
           <span class="url" id="qrUrl"></span>
         </div>
+        </div>
       </aside>
   </div>
+</div></div>
 
   <section class="panel" aria-labelledby="h-how">
     <h2 id="h-how">How the mask finds an apnea without an airflow sensor</h2>
@@ -271,7 +308,7 @@ button.primary { background: var(--accent); color: var(--surface); border-color:
   const EV_NAME = { 'APNEA-O': 'Obstructive apnea', 'APNEA-C': 'Central apnea', 'APNEA-M': 'Mixed apnea', 'APNEA': 'Apnea',
                     'HYP-O': 'Obstructive hypopnea', 'HYP-C': 'Central hypopnea', 'HYP-M': 'Mixed hypopnea', 'HYP': 'Hypopnea' };
   const SEV_VAR = { normal: '--sev-normal', mild: '--sev-mild', moderate: '--sev-moderate', severe: '--sev-severe' };
-  const st = { index: null, cache: {}, n: null, t: 0, win: 300, speed: 10, playing: false, last: 0, base: null, drag: false };
+  const st = { index: null, cache: {}, n: null, t: 0, win: 300, speed: 10, playing: false, last: 0, base: null, drag: false, k: 1, fs: 1, vs: 1 };
   let C = {};
 
   function readColors() {
@@ -288,23 +325,23 @@ button.primary { background: var(--accent); color: var(--surface); border-color:
     const t = Math.floor((startSec(n) + s) % 86400), h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), ss = t % 60;
     return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + (withSec ? ':' + String(ss).padStart(2, '0') : '');
   };
-  const gutter = () => innerWidth < 560 ? 46 : 78;
+  const gutter = () => st.fs === 1 && innerWidth < 560 ? 46 : Math.round(78 * st.fs);
 
   function prep(cv, h) {
-    const dpr = window.devicePixelRatio || 1, w = cv.parentElement.clientWidth - 36;
+    const dpr = (window.devicePixelRatio || 1) * st.k, w = cv.parentElement.clientWidth - 36;
     cv.style.height = h + 'px'; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
     const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
     return [g, w, h];
   }
   function label(g, txt, x, y, color, size = 11, font = C.body, align = 'left') {
-    g.fillStyle = color; g.font = `${size}px ${font}`; g.textAlign = align; g.textBaseline = 'middle'; g.fillText(txt, x, y);
+    g.fillStyle = color; g.font = `${size * st.fs}px ${font}`; g.textAlign = align; g.textBaseline = 'middle'; g.fillText(txt, x, y);
   }
 
   // ---------- whole night (static base cached offscreen; window + playhead drawn per frame)
   const OV = { hyp: [10, 66], sw: [74, 80], spo2: [94, 174], ev: [186, 222], h: 246 };
 
   function buildBase(w) {
-    const n = st.n, dpr = window.devicePixelRatio || 1, L = gutter(), pw = w - L - 8, T = n.n_epochs * 30;
+    const n = st.n, dpr = (window.devicePixelRatio || 1) * st.k, L = gutter(), pw = w - L - 8, T = n.n_epochs * 30;
     const c = document.createElement('canvas'); c.width = Math.round(w * dpr); c.height = Math.round(OV.h * dpr);
     const g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
     const xs = s => L + s / T * pw;
@@ -396,6 +433,22 @@ button.primary { background: var(--accent); color: var(--surface); border-color:
 
   // ---------- close-up (1 Hz signals around the playhead)
   const CU = { top: 18, spo2: [24, 120], pulse: [134, 194], sound: [208, 254], model: [268, 308], h: 334 };
+  const OV0 = JSON.parse(JSON.stringify(OV)), CU0 = JSON.parse(JSON.stringify(CU));
+  function layout(vs) {   // vertical stretch of the chart layouts (16:9 slide mode uses the extra height)
+    for (const [o, o0] of [[OV, OV0], [CU, CU0]]) for (const k in o0)
+      o[k] = Array.isArray(o0[k]) ? o0[k].map(v => Math.round(v * vs)) : Math.round(o0[k] * vs);
+  }
+  // 16:9 slide: on wide screens the page is a 1920x1080 stage scaled to fit; narrower screens keep the stacked layout
+  function fit() {
+    const W = document.documentElement.clientWidth, H = innerHeight, on = W >= 1100 && W / H >= 1.25;
+    const box = $('#fitbox'), slide = $('#slide');
+    document.documentElement.classList.toggle('fit', on);
+    st.k = on ? Math.min(W / 1920, H / 1080) : 1; st.fs = on ? 1.3 : 1; st.vs = on ? 1.15 : 1;
+    box.style.width = on ? Math.round(1920 * st.k) + 'px' : ''; box.style.height = on ? Math.round(1080 * st.k) + 'px' : '';
+    slide.style.transform = on ? `scale(${st.k})` : '';
+    const sp = $('#scatterPanel'); if (on) $('#bottomRow').prepend(sp); else $('.main').append(sp);
+    layout(st.vs); st.base = null;
+  }
 
   function drawClose() {
     const n = st.n, [g, w, h] = prep($('#cu'), CU.h), L = gutter(), pw = w - L - 8;
@@ -410,7 +463,7 @@ button.primary { background: var(--accent); color: var(--surface); border-color:
       g.fillStyle = C.event; g.globalAlpha = .17; g.fillRect(x0, CU.top, x1 - x0, CU.model[1] - CU.top); g.globalAlpha = 1;
       g.fillRect(x0, CU.top, x1 - x0, 3);
       const txt = EV_NAME[typ] || typ;
-      g.font = `11px ${C.body}`;
+      g.font = `${11 * st.fs}px ${C.body}`;
       const tw = g.measureText(txt).width;
       if (x0 > labelEnd + 6 && x0 + tw < L + pw) { label(g, txt, x0 + 2, CU.top - 8, C.event, 11); labelEnd = x0 + 2 + tw; }
     });
@@ -577,7 +630,7 @@ button.primary { background: var(--accent); color: var(--surface); border-color:
   }
   function seekFromPointer(e) {
     const r = $('#ov').getBoundingClientRect(), { L, pw } = st.base;
-    st.t = Math.max(0, Math.min(st.n.n_epochs - 1, (e.clientX - r.left - L) / pw * st.n.n_epochs));
+    st.t = Math.max(0, Math.min(st.n.n_epochs - 1, ((e.clientX - r.left) / st.k - L) / pw * st.n.n_epochs));
     render();
   }
 
@@ -616,15 +669,16 @@ button.primary { background: var(--accent); color: var(--surface); border-color:
     else return;
     e.preventDefault(); render();
   });
-  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { st.base = null; render(); }, 80); });
+  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { fit(); render(); }, 80); });
   const retheme = () => { readColors(); st.base = null; render(); };
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', retheme);
   new MutationObserver(retheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-  if (document.fonts) document.fonts.ready.then(() => { st.base = null; render(); });
+  if (document.fonts) document.fonts.ready.then(() => { fit(); render(); });
   // QR for the audience: always the public link, even when this page is shown from localhost
   const SHARE_URL = 'https://rakibrahman016.github.io/pulse-demo/replay/';
   try { const q = qrcode(0, 'M'); q.addData(SHARE_URL); q.make(); $('#qr').innerHTML = q.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
     $('#qrUrl').textContent = SHARE_URL.replace('https://', ''); } catch (e) { $('.qr').hidden = true; }
+  fit();
   init();
 })();
 </script>
