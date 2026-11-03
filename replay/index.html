@@ -122,7 +122,7 @@ button.primary { background: var(--accent); color: var(--surface); border-color:
 .qr .url { font: 12px var(--f-mono); color: var(--muted); word-break: break-all; }
 .qr b { font: 600 15px var(--f-display); }
 @media (max-width: 1100px) { .stage { grid-template-columns: minmax(0, 1fr); } .side { order: -1; grid-template-columns: 1fr 1fr; }
-  .side-head, .tile.mask, .tile.lab { grid-column: 1 / -1; } .qr { display: none; } }
+  .side-head, .tile.mask, .tile.lab, .qr { grid-column: 1 / -1; } .qr svg { width: 148px; height: 148px; } }
 @media (max-width: 560px) { .side { grid-template-columns: 1fr; } }
 
 @media (max-width: 760px) {
